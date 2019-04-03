@@ -1533,3 +1533,116 @@ define dso_local void @bubble_sort(i32*, i32) #0 {
   ret void
 }
 ```
+
+``` llvm
+SELECT :   %58 = load i32, i32* %6, align 4
+SELECT :   %52 = load i32, i32* %6, align 4
+SELECT :   %47 = load i32, i32* %6, align 4
+SELECT :   %41 = load i32, i32* %6, align 4
+SELECT :   %36 = load i32, i32* %6, align 4
+SELECT :   %28 = load i32, i32* %6, align 4
+SELECT :   %23 = load i32, i32* %6, align 4
+SELECT :   %15 = load i32, i32* %6, align 4
+
+; Function Attrs: noinline nounwind optnone uwtable
+define dso_local void @bubble_sort(i32*, i32) #0 {
+  %xor_marker = alloca i32
+  store i32 16, i32* %xor_marker
+  %3 = alloca i32, align 4
+  %4 = alloca i32*, align 8
+  %5 = alloca i32, align 4
+  %6 = alloca i32, align 4
+  %7 = alloca i32, align 4
+  store i32 %1, i32* %3, align 4
+  store i32* %0, i32** %4, align 8
+  call void @__marking_faultinject_intptr(i32* %6)
+  store i32 0, i32* %5, align 4
+  br label %8
+
+; <label>:8:                                      ; preds = %61, %2
+  %9 = load i32, i32* %5, align 4
+  %10 = load i32, i32* %3, align 4
+  %11 = sub nsw i32 %10, 1
+  %12 = icmp slt i32 %9, %11
+  br i1 %12, label %13, label %64
+
+; <label>:13:                                     ; preds = %8
+  store i32 0, i32* %6, align 4
+  br label %14
+
+; <label>:14:                                     ; preds = %57, %13
+  %15 = load i32, i32* %6, align 4
+  %16 = load i32, i32* %3, align 4
+  %17 = load i32, i32* %5, align 4
+  %18 = sub nsw i32 %16, %17
+  %19 = sub nsw i32 %18, 1
+  %20 = icmp slt i32 %15, %19
+  br i1 %20, label %21, label %60
+
+; <label>:21:                                     ; preds = %14
+  %22 = load i32*, i32** %4, align 8
+  %23 = load i32, i32* %6, align 4
+  %24 = sext i32 %23 to i64
+  %25 = getelementptr inbounds i32, i32* %22, i64 %24
+  %26 = load i32, i32* %25, align 4
+  %27 = load i32*, i32** %4, align 8
+  %28 = load i32, i32* %6, align 4                ; <<=====
+  %xor_val = load i32, i32* %xor_marker           ;
+  %rfi = xor i32 %28, %xor_val                    ;
+  store i32 0, i32* %xor_marker                   ; =====>>
+  %29 = add nsw i32 %rfi, 1                       ; <<===>>
+  %30 = sext i32 %29 to i64
+  %31 = getelementptr inbounds i32, i32* %27, i64 %30
+  %32 = load i32, i32* %31, align 4
+  %33 = icmp sgt i32 %26, %32
+  br i1 %33, label %34, label %56
+
+; <label>:34:                                     ; preds = %21
+  %35 = load i32*, i32** %4, align 8
+  %36 = load i32, i32* %6, align 4
+  %37 = sext i32 %36 to i64
+  %38 = getelementptr inbounds i32, i32* %35, i64 %37
+  %39 = load i32, i32* %38, align 4
+  store i32 %39, i32* %7, align 4
+  %40 = load i32*, i32** %4, align 8
+  %41 = load i32, i32* %6, align 4
+  %42 = add nsw i32 %41, 1
+  %43 = sext i32 %42 to i64
+  %44 = getelementptr inbounds i32, i32* %40, i64 %43
+  %45 = load i32, i32* %44, align 4
+  %46 = load i32*, i32** %4, align 8
+  %47 = load i32, i32* %6, align 4
+  %48 = sext i32 %47 to i64
+  %49 = getelementptr inbounds i32, i32* %46, i64 %48
+  store i32 %45, i32* %49, align 4
+  %50 = load i32, i32* %7, align 4
+  %51 = load i32*, i32** %4, align 8
+  %52 = load i32, i32* %6, align 4
+  %53 = add nsw i32 %52, 1
+  %54 = sext i32 %53 to i64
+  %55 = getelementptr inbounds i32, i32* %51, i64 %54
+  store i32 %50, i32* %55, align 4
+  br label %56
+
+; <label>:56:                                     ; preds = %34, %21
+  br label %57
+
+; <label>:57:                                     ; preds = %56
+  %58 = load i32, i32* %6, align 4
+  %59 = add nsw i32 %58, 1
+  store i32 %59, i32* %6, align 4
+  br label %14
+
+; <label>:60:                                     ; preds = %14
+  br label %61
+
+; <label>:61:                                     ; preds = %60
+  %62 = load i32, i32* %5, align 4
+  %63 = add nsw i32 %62, 1
+  store i32 %63, i32* %5, align 4
+  br label %8
+
+; <label>:64:                                     ; preds = %8
+  ret void
+}
+```
