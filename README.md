@@ -406,6 +406,57 @@ define dso_local i32 @main(i32, i8** nocapture readnone) local_unnamed_addr #0 {
 }
 ```
 
+#### 1.2.1. Multiple outer pointer marker volatile
+
+``` c
+extern void __marking_faultinject_intptr(int*);
+int main(int argc, char *argv[])
+{
+  volatile int  b = 1;
+  __marking_faultinject_intptr(&b);
+  for (volatile int i = 1; i < argc; i++) {
+    b *= i;
+  }
+  printf("%d", b);
+}
+```
+
+``` llvm
+define dso_local i32 @main(i32, i8** nocapture readnone) local_unnamed_addr #0 {
+  %3 = alloca i32, align 4
+  %4 = alloca i32, align 4
+  %5 = bitcast i32* %3 to i8*
+  call void @llvm.lifetime.start.p0i8(i64 4, i8* nonnull %5) #4
+  store volatile i32 1, i32* %3, align 4, !tbaa !3
+  call void @__marking_faultinject_intptr(i32* nonnull %3) #4
+  %6 = bitcast i32* %4 to i8*
+  call void @llvm.lifetime.start.p0i8(i64 4, i8* nonnull %6)
+  store volatile i32 1, i32* %4, align 4, !tbaa !3
+  %7 = load volatile i32, i32* %4, align 4, !tbaa !3
+  %8 = icmp slt i32 %7, %0
+  br i1 %8, label %12, label %9
+
+; <label>:9:                                      ; preds = %12, %2
+  call void @llvm.lifetime.end.p0i8(i64 4, i8* nonnull %6)
+  %10 = load volatile i32, i32* %3, align 4, !tbaa !3
+  %11 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([3 x i8], [3 x i8]* @"??_C@_02DPKJAMEF@?$CFd?$AA@", i64 0, i64 0), i32 %10)
+  call void @llvm.lifetime.end.p0i8(i64 4, i8* nonnull %5) #4
+  ret i32 0
+
+; <label>:12:                                     ; preds = %2, %12
+  %13 = load volatile i32, i32* %4, align 4, !tbaa !3
+  %14 = load volatile i32, i32* %3, align 4, !tbaa !3
+  %15 = mul nsw i32 %14, %13
+  store volatile i32 %15, i32* %3, align 4, !tbaa !3
+  %16 = load volatile i32, i32* %4, align 4, !tbaa !3
+  %17 = add nsw i32 %16, 1
+  store volatile i32 %17, i32* %4, align 4, !tbaa !3
+  %18 = load volatile i32, i32* %4, align 4, !tbaa !3
+  %19 = icmp slt i32 %18, %0
+  br i1 %19, label %12, label %9
+}
+```
+
 ### 1.3. Bubble sort
 
 #### 1.3.1. Bubble sort data swap marker
