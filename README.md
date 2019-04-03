@@ -1,7 +1,7 @@
 # ff-example
 fault injection examples
 
-## 1. C to LL
+## 1. C to LL (Optimization Level 2)
 
 ### 1.1. Sum
 
@@ -740,4 +740,668 @@ define dso_local i32 @main(i32, i8** nocapture readnone) local_unnamed_addr #0 {
 }
 ```
 
-## 2. Inject Results
+---
+
+## 2. C to LL (Optimization Level Zero)
+
+### 2.1. Bubble sort
+
+#### 2.1.1. Bubble sort array element marker
+
+``` c
+extern void __marking_faultinject_int(int);
+void bubble_sort(int arr[], int n)
+{
+  int i, j;
+  for (i = 0; i < n - 1; i++)
+    for (j = 0; j < n - i - 1; j++)
+      if (arr[j] > arr[j + 1]) {
+        int tmp = arr[j];
+        __marking_faultinject_int(arr[j]);
+        arr[j] = arr[j + 1];
+        arr[j + 1] = tmp;
+      }
+}
+
+int main(int argc, char *argv[])
+{
+  int arr[] = { 7,8,0,5,4,1,2,4,3,10,99,55,10,0,1,9,8,7,6,5,4,3,2,1,0,8,0,5,4,1,2,4,3,10,99,55,10,0,1,9,8,7,6,5,4,3,2,
+                1,0,8,0,5,4,1,2,4,3,10,99,55,10,0,1,9,8,7,6,5,4,3,2,1,0,8,0,5,4,1,2,4,3,10,99,55,10,0,1,9,8,7,6,5,4,3,
+                2,1,0 };
+  int n = sizeof(arr) / sizeof(int);
+  bubble_sort(arr, n);
+  for (int i = 0; i < n; i++)
+    printf("%d ", arr[i]);
+}
+```
+
+``` llvm
+define dso_local void @bubble_sort(i32*, i32) #0 {
+  %3 = alloca i32, align 4
+  %4 = alloca i32*, align 8
+  %5 = alloca i32, align 4
+  %6 = alloca i32, align 4
+  %7 = alloca i32, align 4
+  store i32 %1, i32* %3, align 4
+  store i32* %0, i32** %4, align 8
+  store i32 0, i32* %5, align 4
+  br label %8
+
+; <label>:8:                                      ; preds = %66, %2
+  %9 = load i32, i32* %5, align 4
+  %10 = load i32, i32* %3, align 4
+  %11 = sub nsw i32 %10, 1
+  %12 = icmp slt i32 %9, %11
+  br i1 %12, label %13, label %69
+
+; <label>:13:                                     ; preds = %8
+  store i32 0, i32* %6, align 4
+  br label %14
+
+; <label>:14:                                     ; preds = %62, %13
+  %15 = load i32, i32* %6, align 4
+  %16 = load i32, i32* %3, align 4
+  %17 = load i32, i32* %5, align 4
+  %18 = sub nsw i32 %16, %17
+  %19 = sub nsw i32 %18, 1
+  %20 = icmp slt i32 %15, %19
+  br i1 %20, label %21, label %65
+
+; <label>:21:                                     ; preds = %14
+  %22 = load i32*, i32** %4, align 8
+  %23 = load i32, i32* %6, align 4
+  %24 = sext i32 %23 to i64
+  %25 = getelementptr inbounds i32, i32* %22, i64 %24
+  %26 = load i32, i32* %25, align 4
+  %27 = load i32*, i32** %4, align 8
+  %28 = load i32, i32* %6, align 4
+  %29 = add nsw i32 %28, 1
+  %30 = sext i32 %29 to i64
+  %31 = getelementptr inbounds i32, i32* %27, i64 %30
+  %32 = load i32, i32* %31, align 4
+  %33 = icmp sgt i32 %26, %32
+  br i1 %33, label %34, label %61
+
+; <label>:34:                                     ; preds = %21
+  %35 = load i32*, i32** %4, align 8
+  %36 = load i32, i32* %6, align 4
+  %37 = sext i32 %36 to i64
+  %38 = getelementptr inbounds i32, i32* %35, i64 %37
+  %39 = load i32, i32* %38, align 4
+  store i32 %39, i32* %7, align 4
+  %40 = load i32*, i32** %4, align 8
+  %41 = load i32, i32* %6, align 4
+  %42 = sext i32 %41 to i64
+  %43 = getelementptr inbounds i32, i32* %40, i64 %42
+  %44 = load i32, i32* %43, align 4
+  call void @__marking_faultinject_int(i32 %44)
+  %45 = load i32*, i32** %4, align 8
+  %46 = load i32, i32* %6, align 4
+  %47 = add nsw i32 %46, 1
+  %48 = sext i32 %47 to i64
+  %49 = getelementptr inbounds i32, i32* %45, i64 %48
+  %50 = load i32, i32* %49, align 4
+  %51 = load i32*, i32** %4, align 8
+  %52 = load i32, i32* %6, align 4
+  %53 = sext i32 %52 to i64
+  %54 = getelementptr inbounds i32, i32* %51, i64 %53
+  store i32 %50, i32* %54, align 4
+  %55 = load i32, i32* %7, align 4
+  %56 = load i32*, i32** %4, align 8
+  %57 = load i32, i32* %6, align 4
+  %58 = add nsw i32 %57, 1
+  %59 = sext i32 %58 to i64
+  %60 = getelementptr inbounds i32, i32* %56, i64 %59
+  store i32 %55, i32* %60, align 4
+  br label %61
+
+; <label>:61:                                     ; preds = %34, %21
+  br label %62
+
+; <label>:62:                                     ; preds = %61
+  %63 = load i32, i32* %6, align 4
+  %64 = add nsw i32 %63, 1
+  store i32 %64, i32* %6, align 4
+  br label %14
+
+; <label>:65:                                     ; preds = %14
+  br label %66
+
+; <label>:66:                                     ; preds = %65
+  %67 = load i32, i32* %5, align 4
+  %68 = add nsw i32 %67, 1
+  store i32 %68, i32* %5, align 4
+  br label %8
+
+; <label>:69:                                     ; preds = %8
+  ret void
+}
+```
+
+#### 2.1.2. Bubble sort array element pointer marker
+
+``` c
+void bubble_sort(int arr[], int n)
+{
+  int i, j;
+  for (i = 0; i < n - 1; i++)
+    for (j = 0; j < n - i - 1; j++)
+      if (arr[j] > arr[j + 1]) {
+        int tmp = arr[j];
+        __marking_faultinject_intptr(&arr[j]);
+        arr[j] = arr[j + 1];
+        arr[j + 1] = tmp;
+      }
+}
+
+int main(int argc, char *argv[])
+{
+  int arr[] = { 7,8,0,5,4,1,2,4,3,10,99,55,10,0,1,9,8,7,6,5,4,3,2,1,0,8,0,5,4,1,2,4,3,10,99,55,10,0,1,9,8,7,6,5,4,3,2,
+                1,0,8,0,5,4,1,2,4,3,10,99,55,10,0,1,9,8,7,6,5,4,3,2,1,0,8,0,5,4,1,2,4,3,10,99,55,10,0,1,9,8,7,6,5,4,3,
+                2,1,0 };
+  int n = sizeof(arr) / sizeof(int);
+  bubble_sort(arr, n);
+  for (int i = 0; i < n; i++)
+    printf("%d ", arr[i]);
+}
+```
+
+``` llvm
+define dso_local void @bubble_sort(i32*, i32) #0 {
+  %3 = alloca i32, align 4
+  %4 = alloca i32*, align 8
+  %5 = alloca i32, align 4
+  %6 = alloca i32, align 4
+  %7 = alloca i32, align 4
+  store i32 %1, i32* %3, align 4
+  store i32* %0, i32** %4, align 8
+  store i32 0, i32* %5, align 4
+  br label %8
+
+; <label>:8:                                      ; preds = %65, %2
+  %9 = load i32, i32* %5, align 4
+  %10 = load i32, i32* %3, align 4
+  %11 = sub nsw i32 %10, 1
+  %12 = icmp slt i32 %9, %11
+  br i1 %12, label %13, label %68
+
+; <label>:13:                                     ; preds = %8
+  store i32 0, i32* %6, align 4
+  br label %14
+
+; <label>:14:                                     ; preds = %61, %13
+  %15 = load i32, i32* %6, align 4
+  %16 = load i32, i32* %3, align 4
+  %17 = load i32, i32* %5, align 4
+  %18 = sub nsw i32 %16, %17
+  %19 = sub nsw i32 %18, 1
+  %20 = icmp slt i32 %15, %19
+  br i1 %20, label %21, label %64
+
+; <label>:21:                                     ; preds = %14
+  %22 = load i32*, i32** %4, align 8
+  %23 = load i32, i32* %6, align 4
+  %24 = sext i32 %23 to i64
+  %25 = getelementptr inbounds i32, i32* %22, i64 %24
+  %26 = load i32, i32* %25, align 4
+  %27 = load i32*, i32** %4, align 8
+  %28 = load i32, i32* %6, align 4
+  %29 = add nsw i32 %28, 1
+  %30 = sext i32 %29 to i64
+  %31 = getelementptr inbounds i32, i32* %27, i64 %30
+  %32 = load i32, i32* %31, align 4
+  %33 = icmp sgt i32 %26, %32
+  br i1 %33, label %34, label %60
+
+; <label>:34:                                     ; preds = %21
+  %35 = load i32*, i32** %4, align 8
+  %36 = load i32, i32* %6, align 4
+  %37 = sext i32 %36 to i64
+  %38 = getelementptr inbounds i32, i32* %35, i64 %37
+  %39 = load i32, i32* %38, align 4
+  store i32 %39, i32* %7, align 4
+  %40 = load i32*, i32** %4, align 8
+  %41 = load i32, i32* %6, align 4
+  %42 = sext i32 %41 to i64
+  %43 = getelementptr inbounds i32, i32* %40, i64 %42
+  call void @__marking_faultinject_intptr(i32* %43)
+  %44 = load i32*, i32** %4, align 8
+  %45 = load i32, i32* %6, align 4
+  %46 = add nsw i32 %45, 1
+  %47 = sext i32 %46 to i64
+  %48 = getelementptr inbounds i32, i32* %44, i64 %47
+  %49 = load i32, i32* %48, align 4
+  %50 = load i32*, i32** %4, align 8
+  %51 = load i32, i32* %6, align 4
+  %52 = sext i32 %51 to i64
+  %53 = getelementptr inbounds i32, i32* %50, i64 %52
+  store i32 %49, i32* %53, align 4
+  %54 = load i32, i32* %7, align 4
+  %55 = load i32*, i32** %4, align 8
+  %56 = load i32, i32* %6, align 4
+  %57 = add nsw i32 %56, 1
+  %58 = sext i32 %57 to i64
+  %59 = getelementptr inbounds i32, i32* %55, i64 %58
+  store i32 %54, i32* %59, align 4
+  br label %60
+
+; <label>:60:                                     ; preds = %34, %21
+  br label %61
+
+; <label>:61:                                     ; preds = %60
+  %62 = load i32, i32* %6, align 4
+  %63 = add nsw i32 %62, 1
+  store i32 %63, i32* %6, align 4
+  br label %14
+
+; <label>:64:                                     ; preds = %14
+  br label %65
+
+; <label>:65:                                     ; preds = %64
+  %66 = load i32, i32* %5, align 4
+  %67 = add nsw i32 %66, 1
+  store i32 %67, i32* %5, align 4
+  br label %8
+
+; <label>:68:                                     ; preds = %8
+  ret void
+}
+```
+
+#### Differ 2.1.1 vs 2.1.2
+
+``` llvm
+; 2.1.1
+  %43 = getelementptr inbounds i32, i32* %40, i64 %42
+  %44 = load i32, i32* %43, align 4
+  call void @__marking_faultinject_int(i32 %44)
+```
+
+``` llvm
+; 2.1.2
+  %43 = getelementptr inbounds i32, i32* %40, i64 %42
+  call void @__marking_faultinject_intptr(i32* %43)
+```
+
+#### 2.1.3. Bubble sort swap temporary-variable marker
+
+``` c
+void bubble_sort(int arr[], int n)
+{
+  int i, j;
+  for (i = 0; i < n - 1; i++)
+    for (j = 0; j < n - i - 1; j++)
+      if (arr[j] > arr[j + 1]) {
+        int tmp = arr[j];
+        __marking_faultinject_int(tmp);
+        arr[j] = arr[j + 1];
+        arr[j + 1] = tmp;
+      }
+}
+
+int main(int argc, char *argv[])
+{
+  int arr[] = { 7,8,0,5,4,1,2,4,3,10,99,55,10,0,1,9,8,7,6,5,4,3,2,1,0,8,0,5,4,1,2,4,3,10,99,55,10,0,1,9,8,7,6,5,4,3,2,
+                1,0,8,0,5,4,1,2,4,3,10,99,55,10,0,1,9,8,7,6,5,4,3,2,1,0,8,0,5,4,1,2,4,3,10,99,55,10,0,1,9,8,7,6,5,4,3,
+                2,1,0 };
+  int n = sizeof(arr) / sizeof(int);
+  bubble_sort(arr, n);
+  for (int i = 0; i < n; i++)
+    printf("%d ", arr[i]);
+}
+```
+
+``` llvm
+define dso_local void @bubble_sort(i32*, i32) #0 {
+  %3 = alloca i32, align 4
+  %4 = alloca i32*, align 8
+  %5 = alloca i32, align 4
+  %6 = alloca i32, align 4
+  %7 = alloca i32, align 4
+  store i32 %1, i32* %3, align 4
+  store i32* %0, i32** %4, align 8
+  store i32 0, i32* %5, align 4
+  br label %8
+
+; <label>:8:                                      ; preds = %62, %2
+  %9 = load i32, i32* %5, align 4
+  %10 = load i32, i32* %3, align 4
+  %11 = sub nsw i32 %10, 1
+  %12 = icmp slt i32 %9, %11
+  br i1 %12, label %13, label %65
+
+; <label>:13:                                     ; preds = %8
+  store i32 0, i32* %6, align 4
+  br label %14
+
+; <label>:14:                                     ; preds = %58, %13
+  %15 = load i32, i32* %6, align 4
+  %16 = load i32, i32* %3, align 4
+  %17 = load i32, i32* %5, align 4
+  %18 = sub nsw i32 %16, %17
+  %19 = sub nsw i32 %18, 1
+  %20 = icmp slt i32 %15, %19
+  br i1 %20, label %21, label %61
+
+; <label>:21:                                     ; preds = %14
+  %22 = load i32*, i32** %4, align 8
+  %23 = load i32, i32* %6, align 4
+  %24 = sext i32 %23 to i64
+  %25 = getelementptr inbounds i32, i32* %22, i64 %24
+  %26 = load i32, i32* %25, align 4
+  %27 = load i32*, i32** %4, align 8
+  %28 = load i32, i32* %6, align 4
+  %29 = add nsw i32 %28, 1
+  %30 = sext i32 %29 to i64
+  %31 = getelementptr inbounds i32, i32* %27, i64 %30
+  %32 = load i32, i32* %31, align 4
+  %33 = icmp sgt i32 %26, %32
+  br i1 %33, label %34, label %57
+
+; <label>:34:                                     ; preds = %21
+  %35 = load i32*, i32** %4, align 8
+  %36 = load i32, i32* %6, align 4
+  %37 = sext i32 %36 to i64
+  %38 = getelementptr inbounds i32, i32* %35, i64 %37
+  %39 = load i32, i32* %38, align 4
+  store i32 %39, i32* %7, align 4
+  %40 = load i32, i32* %7, align 4
+  call void @__marking_faultinject_int(i32 %40)
+  %41 = load i32*, i32** %4, align 8
+  %42 = load i32, i32* %6, align 4
+  %43 = add nsw i32 %42, 1
+  %44 = sext i32 %43 to i64
+  %45 = getelementptr inbounds i32, i32* %41, i64 %44
+  %46 = load i32, i32* %45, align 4
+  %47 = load i32*, i32** %4, align 8
+  %48 = load i32, i32* %6, align 4
+  %49 = sext i32 %48 to i64
+  %50 = getelementptr inbounds i32, i32* %47, i64 %49
+  store i32 %46, i32* %50, align 4
+  %51 = load i32, i32* %7, align 4
+  %52 = load i32*, i32** %4, align 8
+  %53 = load i32, i32* %6, align 4
+  %54 = add nsw i32 %53, 1
+  %55 = sext i32 %54 to i64
+  %56 = getelementptr inbounds i32, i32* %52, i64 %55
+  store i32 %51, i32* %56, align 4
+  br label %57
+
+; <label>:57:                                     ; preds = %34, %21
+  br label %58
+
+; <label>:58:                                     ; preds = %57
+  %59 = load i32, i32* %6, align 4
+  %60 = add nsw i32 %59, 1
+  store i32 %60, i32* %6, align 4
+  br label %14
+
+; <label>:61:                                     ; preds = %14
+  br label %62
+
+; <label>:62:                                     ; preds = %61
+  %63 = load i32, i32* %5, align 4
+  %64 = add nsw i32 %63, 1
+  store i32 %64, i32* %5, align 4
+  br label %8
+
+; <label>:65:                                     ; preds = %8
+  ret void
+}
+```
+
+#### 2.1.4. Bubble sort swap temporary-variable pointer
+
+``` c
+void bubble_sort(int arr[], int n)
+{
+  int i, j;
+  for (i = 0; i < n - 1; i++)
+    for (j = 0; j < n - i - 1; j++)
+      if (arr[j] > arr[j + 1]) {
+        int tmp = arr[j];
+        __marking_faultinject_intptr(&tmp);
+        arr[j] = arr[j + 1];
+        arr[j + 1] = tmp;
+      }
+}
+
+int main(int argc, char *argv[])
+{
+  int arr[] = { 7,8,0,5,4,1,2,4,3,10,99,55,10,0,1,9,8,7,6,5,4,3,2,1,0,8,0,5,4,1,2,4,3,10,99,55,10,0,1,9,8,7,6,5,4,3,2,
+                1,0,8,0,5,4,1,2,4,3,10,99,55,10,0,1,9,8,7,6,5,4,3,2,1,0,8,0,5,4,1,2,4,3,10,99,55,10,0,1,9,8,7,6,5,4,3,
+                2,1,0 };
+  int n = sizeof(arr) / sizeof(int);
+  bubble_sort(arr, n);
+  for (int i = 0; i < n; i++)
+    printf("%d ", arr[i]);
+}
+```
+
+``` llvm
+define dso_local void @bubble_sort(i32*, i32) #0 {
+  %3 = alloca i32, align 4
+  %4 = alloca i32*, align 8
+  %5 = alloca i32, align 4
+  %6 = alloca i32, align 4
+  %7 = alloca i32, align 4
+  store i32 %1, i32* %3, align 4
+  store i32* %0, i32** %4, align 8
+  store i32 0, i32* %5, align 4
+  br label %8
+
+; <label>:8:                                      ; preds = %61, %2
+  %9 = load i32, i32* %5, align 4
+  %10 = load i32, i32* %3, align 4
+  %11 = sub nsw i32 %10, 1
+  %12 = icmp slt i32 %9, %11
+  br i1 %12, label %13, label %64
+
+; <label>:13:                                     ; preds = %8
+  store i32 0, i32* %6, align 4
+  br label %14
+
+; <label>:14:                                     ; preds = %57, %13
+  %15 = load i32, i32* %6, align 4
+  %16 = load i32, i32* %3, align 4
+  %17 = load i32, i32* %5, align 4
+  %18 = sub nsw i32 %16, %17
+  %19 = sub nsw i32 %18, 1
+  %20 = icmp slt i32 %15, %19
+  br i1 %20, label %21, label %60
+
+; <label>:21:                                     ; preds = %14
+  %22 = load i32*, i32** %4, align 8
+  %23 = load i32, i32* %6, align 4
+  %24 = sext i32 %23 to i64
+  %25 = getelementptr inbounds i32, i32* %22, i64 %24
+  %26 = load i32, i32* %25, align 4
+  %27 = load i32*, i32** %4, align 8
+  %28 = load i32, i32* %6, align 4
+  %29 = add nsw i32 %28, 1
+  %30 = sext i32 %29 to i64
+  %31 = getelementptr inbounds i32, i32* %27, i64 %30
+  %32 = load i32, i32* %31, align 4
+  %33 = icmp sgt i32 %26, %32
+  br i1 %33, label %34, label %56
+
+; <label>:34:                                     ; preds = %21
+  %35 = load i32*, i32** %4, align 8
+  %36 = load i32, i32* %6, align 4
+  %37 = sext i32 %36 to i64
+  %38 = getelementptr inbounds i32, i32* %35, i64 %37
+  %39 = load i32, i32* %38, align 4
+  store i32 %39, i32* %7, align 4
+  call void @__marking_faultinject_intptr(i32* %7)
+  %40 = load i32*, i32** %4, align 8
+  %41 = load i32, i32* %6, align 4
+  %42 = add nsw i32 %41, 1
+  %43 = sext i32 %42 to i64
+  %44 = getelementptr inbounds i32, i32* %40, i64 %43
+  %45 = load i32, i32* %44, align 4
+  %46 = load i32*, i32** %4, align 8
+  %47 = load i32, i32* %6, align 4
+  %48 = sext i32 %47 to i64
+  %49 = getelementptr inbounds i32, i32* %46, i64 %48
+  store i32 %45, i32* %49, align 4
+  %50 = load i32, i32* %7, align 4
+  %51 = load i32*, i32** %4, align 8
+  %52 = load i32, i32* %6, align 4
+  %53 = add nsw i32 %52, 1
+  %54 = sext i32 %53 to i64
+  %55 = getelementptr inbounds i32, i32* %51, i64 %54
+  store i32 %50, i32* %55, align 4
+  br label %56
+
+; <label>:56:                                     ; preds = %34, %21
+  br label %57
+
+; <label>:57:                                     ; preds = %56
+  %58 = load i32, i32* %6, align 4
+  %59 = add nsw i32 %58, 1
+  store i32 %59, i32* %6, align 4
+  br label %14
+
+; <label>:60:                                     ; preds = %14
+  br label %61
+
+; <label>:61:                                     ; preds = %60
+  %62 = load i32, i32* %5, align 4
+  %63 = add nsw i32 %62, 1
+  store i32 %63, i32* %5, align 4
+  br label %8
+
+; <label>:64:                                     ; preds = %8
+  ret void
+}
+```
+
+#### Differ 2.1.3 vs 2.1.4
+
+#### 2.1.5 Declare variable entry point with pointer marker
+
+``` c
+extern void __marking_faultinject_intptr(int*);
+
+void bubble_sort(int arr[], int n)
+{
+  int i, j, tmp;
+  __marking_faultinject_intptr(&tmp);
+  for (i = 0; i < n - 1; i++)
+    for (j = 0; j < n - i - 1; j++)
+      if (arr[j] > arr[j + 1]) {
+        tmp = arr[j];
+        arr[j] = arr[j + 1];
+        arr[j + 1] = tmp;
+      }
+}
+
+int main(int argc, char *argv[])
+{
+  int arr[] = { 7,8,0,5,4,1,2,4,3,10,99,55,10,0,1,9,8,7,6,5,4,3,2,1,0,8,0,5,4,1,2,4,3,10,99,55,10,0,1,9,8,7,6,5,4,3,2,
+                1,0,8,0,5,4,1,2,4,3,10,99,55,10,0,1,9,8,7,6,5,4,3,2,1,0,8,0,5,4,1,2,4,3,10,99,55,10,0,1,9,8,7,6,5,4,3,
+                2,1,0 };
+  int n = sizeof(arr) / sizeof(int);
+  bubble_sort(arr, n);
+  for (int i = 0; i < n; i++)
+    printf("%d ", arr[i]);
+}
+```
+
+``` llvm
+define dso_local void @bubble_sort(i32*, i32) #0 {
+  %3 = alloca i32, align 4
+  %4 = alloca i32*, align 8
+  %5 = alloca i32, align 4
+  %6 = alloca i32, align 4
+  %7 = alloca i32, align 4
+  store i32 %1, i32* %3, align 4
+  store i32* %0, i32** %4, align 8
+  call void @__marking_faultinject_intptr(i32* %7)
+  store i32 0, i32* %5, align 4
+  br label %8
+
+; <label>:8:                                      ; preds = %61, %2
+  %9 = load i32, i32* %5, align 4
+  %10 = load i32, i32* %3, align 4
+  %11 = sub nsw i32 %10, 1
+  %12 = icmp slt i32 %9, %11
+  br i1 %12, label %13, label %64
+
+; <label>:13:                                     ; preds = %8
+  store i32 0, i32* %6, align 4
+  br label %14
+
+; <label>:14:                                     ; preds = %57, %13
+  %15 = load i32, i32* %6, align 4
+  %16 = load i32, i32* %3, align 4
+  %17 = load i32, i32* %5, align 4
+  %18 = sub nsw i32 %16, %17
+  %19 = sub nsw i32 %18, 1
+  %20 = icmp slt i32 %15, %19
+  br i1 %20, label %21, label %60
+
+; <label>:21:                                     ; preds = %14
+  %22 = load i32*, i32** %4, align 8
+  %23 = load i32, i32* %6, align 4
+  %24 = sext i32 %23 to i64
+  %25 = getelementptr inbounds i32, i32* %22, i64 %24
+  %26 = load i32, i32* %25, align 4
+  %27 = load i32*, i32** %4, align 8
+  %28 = load i32, i32* %6, align 4
+  %29 = add nsw i32 %28, 1
+  %30 = sext i32 %29 to i64
+  %31 = getelementptr inbounds i32, i32* %27, i64 %30
+  %32 = load i32, i32* %31, align 4
+  %33 = icmp sgt i32 %26, %32
+  br i1 %33, label %34, label %56
+
+; <label>:34:                                     ; preds = %21
+  %35 = load i32*, i32** %4, align 8
+  %36 = load i32, i32* %6, align 4
+  %37 = sext i32 %36 to i64
+  %38 = getelementptr inbounds i32, i32* %35, i64 %37
+  %39 = load i32, i32* %38, align 4
+  store i32 %39, i32* %7, align 4                         ; <<===========
+  %40 = load i32*, i32** %4, align 8
+  %41 = load i32, i32* %6, align 4
+  %42 = add nsw i32 %41, 1
+  %43 = sext i32 %42 to i64
+  %44 = getelementptr inbounds i32, i32* %40, i64 %43
+  %45 = load i32, i32* %44, align 4
+  %46 = load i32*, i32** %4, align 8
+  %47 = load i32, i32* %6, align 4
+  %48 = sext i32 %47 to i64
+  %49 = getelementptr inbounds i32, i32* %46, i64 %48
+  store i32 %45, i32* %49, align 4
+  %50 = load i32, i32* %7, align 4                        ; <<===========
+  %51 = load i32*, i32** %4, align 8
+  %52 = load i32, i32* %6, align 4
+  %53 = add nsw i32 %52, 1
+  %54 = sext i32 %53 to i64
+  %55 = getelementptr inbounds i32, i32* %51, i64 %54
+  store i32 %50, i32* %55, align 4
+  br label %56
+
+; <label>:56:                                     ; preds = %34, %21
+  br label %57
+
+; <label>:57:                                     ; preds = %56
+  %58 = load i32, i32* %6, align 4
+  %59 = add nsw i32 %58, 1
+  store i32 %59, i32* %6, align 4
+  br label %14
+
+; <label>:60:                                     ; preds = %14
+  br label %61
+
+; <label>:61:                                     ; preds = %60
+  %62 = load i32, i32* %5, align 4
+  %63 = add nsw i32 %62, 1
+  store i32 %63, i32* %5, align 4
+  br label %8
+
+; <label>:64:                                     ; preds = %8
+  ret void
+}
+```
