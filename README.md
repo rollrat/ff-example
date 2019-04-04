@@ -1646,3 +1646,113 @@ define dso_local void @bubble_sort(i32*, i32) #0 {
   ret void
 }
 ```
+
+``` llvm
+define dso_local void @bubble_sort(i32* nocapture, i32) local_unnamed_addr #0 {
+  %3 = add i32 %1, -1
+  %4 = icmp sgt i32 %3, 0
+  br i1 %4, label %.preheader, label %._crit_edge31
+
+.preheader:                                       ; preds = %2, %._crit_edge
+  %xor_marker.030 = phi i32 [ %xor_marker.1.lcssa, %._crit_edge ], [ 26, %2 ]
+  %.02429 = phi i32 [ %36, %._crit_edge ], [ 0, %2 ]
+  %5 = sub i32 %3, %.02429
+  %6 = zext i32 %5 to i64
+  %7 = xor i32 %.02429, -1
+  %8 = add i32 %7, %1
+  %9 = icmp sgt i32 %8, 0
+  br i1 %9, label %.lr.ph.preheader, label %._crit_edge
+
+.lr.ph.preheader:                                 ; preds = %.preheader
+  %xtraiter = and i64 %6, 1
+  %10 = icmp eq i32 %5, 1
+  br i1 %10, label %._crit_edge.loopexit.unr-lcssa, label %.lr.ph.preheader.new
+
+.lr.ph.preheader.new:                             ; preds = %.lr.ph.preheader
+  %unroll_iter = sub nsw i64 %6, %xtraiter
+  br label %.lr.ph
+
+.lr.ph:                                           ; preds = %42, %.lr.ph.preheader.new
+  %indvars.iv = phi i64 [ 0, %.lr.ph.preheader.new ], [ %indvars.iv.next.1, %42 ]
+  %xor_marker.128 = phi i32 [ %xor_marker.030, %.lr.ph.preheader.new ], [ %xor_marker.2.1, %42 ]
+  %niter = phi i64 [ %unroll_iter, %.lr.ph.preheader.new ], [ %niter.nsub.1, %42 ]
+  %11 = getelementptr inbounds i32, i32* %0, i64 %indvars.iv
+  %12 = load i32, i32* %11, align 4, !tbaa !3
+  %indvars.iv.next = or i64 %indvars.iv, 1
+  %13 = getelementptr inbounds i32, i32* %0, i64 %indvars.iv.next
+  %14 = load i32, i32* %13, align 4, !tbaa !3
+  %15 = icmp sgt i32 %12, %14
+  br i1 %15, label %16, label %.lr.ph.135
+
+; <label>:16:                                     ; preds = %.lr.ph
+  store i32 %14, i32* %11, align 4, !tbaa !3
+  %17 = trunc i64 %indvars.iv to i32
+  %rfi = xor i32 %xor_marker.128, %17
+  %18 = add nsw i32 %rfi, 1
+  %19 = sext i32 %18 to i64
+  %20 = getelementptr inbounds i32, i32* %0, i64 %19
+  store i32 %12, i32* %20, align 4, !tbaa !3
+  br label %.lr.ph.135
+
+.lr.ph.135:                                       ; preds = %.lr.ph, %16
+  %xor_marker.2 = phi i32 [ 0, %16 ], [ %xor_marker.128, %.lr.ph ]
+  %21 = getelementptr inbounds i32, i32* %0, i64 %indvars.iv.next
+  %22 = load i32, i32* %21, align 4, !tbaa !3
+  %indvars.iv.next.1 = add nuw nsw i64 %indvars.iv, 2
+  %23 = getelementptr inbounds i32, i32* %0, i64 %indvars.iv.next.1
+  %24 = load i32, i32* %23, align 4, !tbaa !3
+  %25 = icmp sgt i32 %22, %24
+  br i1 %25, label %37, label %42
+
+._crit_edge.loopexit.unr-lcssa:                   ; preds = %42, %.lr.ph.preheader
+  %xor_marker.2.lcssa.ph = phi i32 [ undef, %.lr.ph.preheader ], [ %xor_marker.2.1, %42 ]
+  %indvars.iv.unr = phi i64 [ 0, %.lr.ph.preheader ], [ %indvars.iv.next.1, %42 ]
+  %xor_marker.128.unr = phi i32 [ %xor_marker.030, %.lr.ph.preheader ], [ %xor_marker.2.1, %42 ]
+  %lcmp.mod = icmp eq i64 %xtraiter, 0
+  br i1 %lcmp.mod, label %._crit_edge, label %.lr.ph.epil
+
+.lr.ph.epil:                                      ; preds = %._crit_edge.loopexit.unr-lcssa
+  %26 = getelementptr inbounds i32, i32* %0, i64 %indvars.iv.unr
+  %27 = load i32, i32* %26, align 4, !tbaa !3
+  %indvars.iv.next.epil = add nuw nsw i64 %indvars.iv.unr, 1
+  %28 = getelementptr inbounds i32, i32* %0, i64 %indvars.iv.next.epil
+  %29 = load i32, i32* %28, align 4, !tbaa !3
+  %30 = icmp sgt i32 %27, %29
+  br i1 %30, label %31, label %._crit_edge
+
+; <label>:31:                                     ; preds = %.lr.ph.epil
+  store i32 %29, i32* %26, align 4, !tbaa !3
+  %32 = trunc i64 %indvars.iv.unr to i32
+  %rfi.epil = xor i32 %xor_marker.128.unr, %32
+  %33 = add nsw i32 %rfi.epil, 1
+  %34 = sext i32 %33 to i64
+  %35 = getelementptr inbounds i32, i32* %0, i64 %34
+  store i32 %27, i32* %35, align 4, !tbaa !3
+  br label %._crit_edge
+
+._crit_edge:                                      ; preds = %._crit_edge.loopexit.unr-lcssa, %.lr.ph.epil, %31, %.preheader
+  %xor_marker.1.lcssa = phi i32 [ %xor_marker.030, %.preheader ], [ %xor_marker.2.lcssa.ph, %._crit_edge.loopexit.unr-lcssa ], [ 0, %31 ], [ %xor_marker.128.unr, %.lr.ph.epil ]
+  %36 = add nuw nsw i32 %.02429, 1
+  %exitcond34 = icmp eq i32 %36, %3
+  br i1 %exitcond34, label %._crit_edge31, label %.preheader
+
+._crit_edge31:                                    ; preds = %._crit_edge, %2
+  ret void
+
+; <label>:37:                                     ; preds = %.lr.ph.135
+  store i32 %24, i32* %21, align 4, !tbaa !3
+  %38 = trunc i64 %indvars.iv.next to i32
+  %rfi.1 = xor i32 %xor_marker.2, %38
+  %39 = add nsw i32 %rfi.1, 1
+  %40 = sext i32 %39 to i64
+  %41 = getelementptr inbounds i32, i32* %0, i64 %40
+  store i32 %22, i32* %41, align 4, !tbaa !3
+  br label %42
+
+; <label>:42:                                     ; preds = %37, %.lr.ph.135
+  %xor_marker.2.1 = phi i32 [ 0, %37 ], [ %xor_marker.2, %.lr.ph.135 ]
+  %niter.nsub.1 = add i64 %niter, -2
+  %niter.ncmp.1 = icmp eq i64 %niter.nsub.1, 0
+  br i1 %niter.ncmp.1, label %._crit_edge.loopexit.unr-lcssa, label %.lr.ph
+}
+```
